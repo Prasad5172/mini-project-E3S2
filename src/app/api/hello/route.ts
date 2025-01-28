@@ -27,7 +27,7 @@ export type PostError = {
 };
 
 const PROGRAM_ID = new PublicKey("AAwQy1UeenPqH6poqtiR6sKePDgeF2YcnHmy2jSNYRL6");
-const DISCRIMINATOR = sha256.digest('global:decrement').slice(0,8);
+const DISCRIMINATOR = sha256.digest('global:increment').slice(0,8);
 const data = Buffer.from([...DISCRIMINATOR])
 const privateKeyString: string = process.env.PRIVATE_KEY!;
 const privateKey = JSON.parse(privateKeyString);
