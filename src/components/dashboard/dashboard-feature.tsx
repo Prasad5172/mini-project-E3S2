@@ -86,20 +86,20 @@ export default function DashboardFeature() {
     const { signature } = signatureInfo;
     setPaymentStatus("Confirmed");
 
-    console.log('\n6. 🔗 Validate transaction \n');
-
-    try {
-      await validateTransfer(connection, signature, { recipient: MERCHANT_WALLET, amount,splToken });
-      // Update payment status
-      setPaymentStatus('validated');
-      console.log('✅ Payment validated');
-      console.log('📦 Ship order to customer');
-    } catch (error) {
-      console.log(error);
-      setPaymentStatus('Failed to Pay');
-    } finally {
-      // setShowQR(false);
+    const transaction = await connection.getTransaction(signature, {
+      commitment: 'confirmed',
+      maxSupportedTransactionVersion: 0, 
+    });
+    console.log(transaction);
+    if (!transaction || !transaction.meta) {
+      console.error('Transaction not found or incomplete');
+      return false;
     }
+    if (transaction.meta.err) {
+      console.error('Transaction failed with error:', transaction.meta.err);
+      return false;
+    }
+
   }
 
   return (
