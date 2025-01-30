@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createQR, encodeURL, findReference, FindReferenceError, TransactionRequestURLFields } from '@solana/pay';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { ConfirmedSignatureInfo, Keypair, PublicKey, SolanaJSONRPCError, TransactionSignature } from '@solana/web3.js';
+import { ConfirmedSignatureInfo, Keypair, PublicKey,Connection, SolanaJSONRPCError, TransactionSignature, clusterApiUrl } from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 import { simulateCheckout } from './simulateCheckout';
 import { validateTransfer } from './validateTransfer';
@@ -83,9 +83,12 @@ export default function DashboardFeature() {
         reject(new Error('Payment timeout reached'));
       }, 2 * 60 * 1000); // 5 minutes in milliseconds
     });
-    const { signature } = signatureInfo;
+    let { signature } = signatureInfo;
     setPaymentStatus("Confirmed");
+    let signatureA = "2SpbEteXjX6aFUGen1sTye9DdTjZ2dpAZaNAXgJDz6MvByfLSmu3DNAk1q3yNXSfAp8d33x16r6bSMp4AkS8P9Et"
+    let signatureB = "2TnjRGy3zAhpjPtUkD8JT65aGofmeEBTWnBi7cUXtCTXooHPneVEwZ8eLVk9df9dsqEP62QpxXGpfrjGvhR7Gno9"
 
+    // const con = new Connection(clusterApiUrl("devnet"), "confirmed");
     const transaction = await connection.getTransaction(signature, {
       commitment: 'confirmed',
       maxSupportedTransactionVersion: 0, 
