@@ -2,8 +2,16 @@ const journeyService = require('../service/journeyService.js');
 
 // Controller to create a new journey
 const createJourneyController = async (req, res) => {
+  console.log("Creating a new journey");
   try {
     const newJourney = req.body;
+    const {train_id,start_time,end_time} = newJourney;
+    if (!train_id || !start_time || !end_time) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
     const createdJourney = await journeyService.createJourney(newJourney);
     return res.status(201).json({
       success: true,
@@ -72,10 +80,12 @@ const getJourneysByTrainController = async (req, res) => {
 };
 
 // Controller to get journeys by date range
-const getJourneysByDateRangeController = async (req, res) => {
+const getJourneyByPathController = async (req, res) => {
+  console.log("getJourneyByPathController")
   try {
-    const { startDate, endDate } = req.query;
-    await journeyService.getJourneysByDateRange(startDate, endDate, (err, response) => {
+    console.log(req.body)
+    const { source, destination } = req.body;
+    await journeyService.getJourneysByPath(source, destination, (err, response) => {
       if (err) {
         return res.status(500).json(response);
       }
@@ -113,6 +123,6 @@ module.exports = {
   getAllJourneysController,
   getJourneyByIdController,
   getJourneysByTrainController,
-  getJourneysByDateRangeController,
+  getJourneyByPathController,
   updateJourneyController
 };

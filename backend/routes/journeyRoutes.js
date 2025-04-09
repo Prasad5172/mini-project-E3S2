@@ -9,14 +9,13 @@ router.route("/").post( journeyController.createJourneyController);
 // Route to get all journeys
 router.route("/").get( journeyController.getAllJourneysController);
 
-// Route to get journey by ID
-router.route("/:journeyId").get( journeyController.getJourneyByIdController);
+router.route("/source_destination").get(journeyController.getJourneyByPathController);
 
 // Route to get journeys by train ID
-router.route("/train/:trainId").get( journeyController.getJourneysByTrainController);
+router.route("/train/:trainId").get(journeyController.getJourneysByTrainController);
 
 // Route to get journeys by date range
-router.route("/date-range").get( journeyController.getJourneysByDateRangeController);
+router.route("/:journeyId").get( journeyController.getJourneyByIdController);
 
 // Route to update a journey
 router.route("/:journeyId").put( journeyController.updateJourneyController);

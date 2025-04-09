@@ -1,6 +1,6 @@
 const { responseHandler } = require('../helpers/handler.js');
-const { TrainModel } = require("../model/TrainModel.js")
-
+const { TrainModel } = require("../model/TrainModel.js");
+const { JourneyModel } = require("../model/JourneyModel.js");
 
 // 1️⃣ Create a new train
 const create = async (newTrain) => {
@@ -12,9 +12,9 @@ const create = async (newTrain) => {
 };
 
 // 2️⃣ Retrieve a specific train by train_id
-const retrieveOne = async (trainId) => {
-    console.log("Retrieving train by ID...");
-    return await TrainModel.findOne({ where: { train_id: trainId } })
+const retrieveOne = async (params) => {
+    console.log("Retrieving train by ID...",params);
+    return await TrainModel.findOne({ where: params })
         .catch((error) => {
             console.log('Error retrieving train by ID:', error);
             throw new Error('Train not found');
@@ -22,13 +22,13 @@ const retrieveOne = async (trainId) => {
 };
 
 // 3️⃣ Get all trains
-const retrieveAll = async (result) => {
+const retrieveAll = async () => {
     console.log("Retrieving all trains...");
     const queryResult = await TrainModel.findAll().catch((error) => {
         console.log(error);
-        return result(responseHandler(false, 500, 'Something went wrong!', null), null);
+        throw new Error("Error occurred while retrieving all trains.");
     });
-    return result(null, responseHandler(true, 200, 'Success', queryResult));
+    return queryResult;
 };
 
 // 4️⃣ Update train details
@@ -57,73 +57,72 @@ const deleteTrain = async (trainId) => {
         });
 };
 
-// 6️⃣ Retrieve trains by route (from -> to)
-const getTrainByRoute = async (from, to) => {
+// 6️⃣ Retrieve trains by route (source -> destination)
+const getTrainByRoute = async (source, destination) => {
     console.log("Retrieving trains by route...");
-    return await TrainModel.findAll({ where: { from, to } })
+    return await TrainModel.findAll({ where: { source, destination } })
         .catch((error) => {
             console.log('Error retrieving trains by route:', error);
             throw new Error('Error retrieving trains by route');
         });
 };
 
-const getAllAvailableSeats = async (trainId) => {
-    console.log("Getting all available seats for train...");
+// 7️⃣ Get all available seats for a specific journey
+const getAllAvailableSeats = async (journeyId) => {
+    console.log("Getting all available seats for journey...");
 
-    const train = await TrainModel.findByPk(trainId);
-    if (!train) throw new Error('Train not found');
+    const journey = await JourneyModel.findByPk(journeyId);
+    if (!journey) throw new Error('Journey not found');
 
-    const availableSeats = {
-        AC: train.avail_ac,
-        SL: train.avail_sl,
-        GN: train.avail_gn
+    return {
+        AC: journey.avail_ac,
+        SL: journey.avail_sl,
+        GN: journey.avail_gn
     };
-
-    return availableSeats;
 };
 
-// 7️⃣ Get available seats for a specific train and seat type
-const getAvailableSeats = async (trainId, seatType) => {
+// 8️⃣ Get available seats for a specific journey and seat type
+const getAvailableSeats = async (journeyId, seatType) => {
     console.log("Getting available seats for seat type...");
-    const train = await TrainModel.findByPk(trainId);
-    if (!train) throw new Error('Train not found');
+    const journey = await JourneyModel.findByPk(journeyId);
+    if (!journey) throw new Error('Journey not found');
 
     switch (seatType) {
         case "AC":
-            return train.avail_ac;
+            return journey.avail_ac;
         case "SL":
-            return train.avail_sl;
+            return journey.avail_sl;
         case "GN":
-            return train.avail_gn;
+            return journey.avail_gn;
         default:
             throw new Error('Invalid seat type');
     }
 };
 
-// 8️⃣ Update available seats for a specific seat type
-const updateAvailableSeats = async (trainId, seatType, newCount) => {
+// 9️⃣ Update available seats for a specific journey and seat type
+const updateAvailableSeats = async (journeyId, seatType, newCount) => {
     console.log("Updating available seats for seat type...");
-    const train = await TrainModel.findByPk(trainId);
-    if (!train) throw new Error('Train not found');
+    const journey = await JourneyModel.findByPk(journeyId);
+    if (!journey) throw new Error('Journey not found');
 
     switch (seatType) {
         case "AC":
-            train.avail_ac = newCount;
+            journey.avail_ac = newCount;
             break;
         case "SL":
-            train.avail_sl = newCount;
+            journey.avail_sl = newCount;
             break;
         case "GN":
-            train.avail_gn = newCount;
+            journey.avail_gn = newCount;
             break;
         default:
             throw new Error('Invalid seat type');
     }
 
-    return await train.save();
+    return await journey.save();
 };
 
-// 9️⃣ Get the price for a specific train and seat type
+// 🔟 Get the price for a specific train and seat type
 const getPrice = async (trainId, seatType) => {
     console.log("Getting price for seat type...");
     const train = await TrainModel.findByPk(trainId);
@@ -140,6 +139,29 @@ const getPrice = async (trainId, seatType) => {
             throw new Error('Invalid seat type');
     }
 };
+
+const getTrainByRouteAndDate = async (source, destination, journeyDate) => {
+    console.log("Retrieving trains by route and date...");
+
+    return await JourneyModel.findAll({
+        where: {
+            start_time: {
+                [Op.between]: [
+                    new Date(journeyDate + " 00:00:00"), // Start of the day
+                    new Date(journeyDate + " 23:59:59")  // End of the day
+                ]
+            }
+        },
+        include: {
+            model: TrainModel,
+            where: { source, destination }
+        }
+    }).catch((error) => {
+        console.log('Error retrieving trains by route and date:', error);
+        throw new Error('Error retrieving trains by route and date');
+    });
+};
+
 
 module.exports = {
     create,

@@ -29,10 +29,9 @@ const TicketModel = db.define("ticket", {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-            model: JourneyModel,
+            model: "journeys",
             key: "journey_id"
         },
-        onDelete: "CASCADE"
     },
     seat_type: {
         type: Sequelize.ENUM("AC", "SL", "GN"),
@@ -43,7 +42,7 @@ const TicketModel = db.define("ticket", {
         allowNull: false
     },
     status: {
-        type: Sequelize.ENUM("PAID", "CANCELLED", "ONSALE", "COMPLETE"),
+        type: Sequelize.ENUM("PAID", "CANCELLED", "ONSALE", "COMPLETED"),
         allowNull: false,
         defaultValue: "PAID"
     },

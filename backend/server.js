@@ -5,11 +5,10 @@ const Stripe = require('stripe'); // Correct import for Stripe SDK
 
 const PORT = process.env.PORT || 8000;
 const app = express();
-const db = require("./config/db")
 const trainRoutes = require("./routes/trainRoutes.js");
 const journeyRoutes = require("./routes/journeyRoutes.js");
 const ticketRoutes = require("./routes/ticketRoutes.js");
-
+const mappings = require("./model/index.js");
 app.use(cors({
     origin: "http://localhost:3000",
     credentials: true, 

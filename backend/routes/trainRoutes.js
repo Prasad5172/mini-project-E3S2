@@ -12,7 +12,5 @@ router.route("/").get( trainController.getAllTrainsController);
 // Route to get train by ID
 router.route("/:trainId").get( trainController.getTrainByIdController);
 
-// Route to get available seats for a specific train and class (AC, SL, GN)
-router.route("/:trainId/seats/:classType").get( trainController.getAvailableSeatsController);
 
 module.exports = router;

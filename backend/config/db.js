@@ -22,8 +22,8 @@ const sequelize = new Sequelize(config.DB.DATABASE,config.DB.USER, config.DB.PAS
   });
 
 (async () => await sequelize.sync(
-  { force :true } 
-  // { alter :true } 
+  // { force :true } 
+  { alter :true } 
   ))().then(() => {
   console.log("connection is succesful")
 }).then(async () => {

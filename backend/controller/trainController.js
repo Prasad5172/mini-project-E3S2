@@ -1,10 +1,18 @@
+const { type } = require('os');
 const trainService = require('../service/trainService.js');
 
 // Controller to create a new train
 const createTrainController = async (req, res) => {
   try {
-    const newTrain = req.body;
-    const createdTrain = await trainService.createTrain(newTrain);
+    const { train_name,journey_distance,source,destination,total_ac,total_sl,total_gn } = req.body;
+    if (!train_name || !journey_distance || !source || !destination || !total_ac || !total_sl || !total_gn) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+    const newTrainDetails = req.body;
+    const createdTrain = await trainService.createTrain(newTrainDetails);
     return res.status(201).json({
       success: true,
       message: 'Train created successfully',
@@ -20,6 +28,7 @@ const createTrainController = async (req, res) => {
 
 // Controller to get all trains
 const getAllTrainsController = async (req, res) => {
+  console.log("Train controller");
   try {
     await trainService.getAllTrains((err, response) => {
       if (err) {
@@ -39,7 +48,7 @@ const getAllTrainsController = async (req, res) => {
 const getTrainByIdController = async (req, res) => {
   try {
     const { trainId } = req.params;
-    await trainService.getTrainById(trainId, (err, response) => {
+    await trainService.getTrainById(parseInt(trainId), (err, response) => {
       if (err) {
         return res.status(500).json(response);
       }

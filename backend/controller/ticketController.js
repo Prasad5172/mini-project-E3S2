@@ -2,7 +2,15 @@ const ticketService = require('../service/ticketService.js');
 
 // Controller to create a new ticket
 const createTicketController = async (req, res) => {
+  console.log("ticket controller");
   try {
+    const {username,aadhar,owner,ticket_nft,journey_id,seat_type} = req.body;
+    if (!username || !aadhar || !owner || !ticket_nft || !journey_id || seat_type in ['AC','SL','GN']) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }4
     const newTicket = req.body;
     const createdTicket = await ticketService.createTicket(newTicket);
     return res.status(201).json({
@@ -19,9 +27,10 @@ const createTicketController = async (req, res) => {
 };
 
 // Controller to get all tickets
-const getAllTicketsController = async (req, res) => {
+const getTicketsByJourneyController = async (req, res) => {
   try {
-    await ticketService.getAllTickets((err, response) => {
+    const { journeyId } = req.params;
+    await ticketService.getTicketsByJourney(journeyId,(err, response) => {
       if (err) {
         return res.status(500).json(response);
       }
@@ -37,8 +46,10 @@ const getAllTicketsController = async (req, res) => {
 
 // Controller to get ticket by ID
 const getTicketByIdController = async (req, res) => {
+  console.log("ticket controller");
   try {
-    const { ticketId } = req.params;
+    const { ticketId } = req.query;
+    console.log(ticketId)
     await ticketService.getTicketById(ticketId, (err, response) => {
       if (err) {
         return res.status(500).json(response);
@@ -53,32 +64,14 @@ const getTicketByIdController = async (req, res) => {
   }
 };
 
-// Controller to get tickets by journey ID
-const getTicketsByJourneyController = async (req, res) => {
-  try {
-    const { journeyId } = req.params;
-    await ticketService.getTicketsByJourney(journeyId, (err, response) => {
-      if (err) {
-        return res.status(500).json(response);
-      }
-      return res.status(200).json(response);
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
 
-// Controller to update a ticket
-const updateTicketController = async (req, res) => {
+// Controller to delete a ticket
+const cancelTicketController = async (req, res) => {
   try {
-    const { ticketId } = req.params;
-    const updatedData = req.body;
-    await ticketService.updateTicket(ticketId, updatedData, (err, response) => {
+    const { ticketId } = req.query;
+    await ticketService.updateTicketStatus(ticketId,'CANCELLED', (err, response) => {
       if (err) {
-        return res.status(500).json(response);
+        return res.status(500).json(err);
       }
       return res.status(200).json(response);
     });
@@ -91,12 +84,13 @@ const updateTicketController = async (req, res) => {
 };
 
 // Controller to delete a ticket
-const deleteTicketController = async (req, res) => {
+const moveTicketToSaleController = async (req, res) => {
   try {
-    const { ticketId } = req.params;
-    await ticketService.deleteTicket(ticketId, (err, response) => {
+    const { ticketId } = req.query;
+    const {sale_price} = req.body;
+    await ticketService.updateTicketStatus(ticketId,'ONSALE',sale_price, (err, response) => {
       if (err) {
-        return res.status(500).json(response);
+        return res.status(500).json(err);
       }
       return res.status(200).json(response);
     });
@@ -108,11 +102,68 @@ const deleteTicketController = async (req, res) => {
   }
 };
 
+const cancelFromSaleController = async (req,res) => {
+  try {
+    const { ticketId } = req.query;
+    await ticketService.updateTicketStatus(ticketId,'PAID', (err, response) => {
+      if (err) {
+        return res.status(500).json(err);
+      }
+      return res.status(200).json(response);
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+}
+const updateTicketsByJourneyController = async (req, res) => {
+  try {
+    const { journeyId } = req.params; // Get journey_id from URL
+    if (!journeyId) {
+      return res.status(400).json({ success: false, message: "Journey ID is required" });
+    }updateTicketsByJourneyController
+    await ticketService.updateTicketStatusByJourney(journeyId,(err, response) => {
+      if (err) {
+        return res.status(500).json(err);
+      }
+      return res.status(200).json(response);
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+const transferTicketController = async (req, res) => {
+  try {
+    const { ticketId } = req.query;
+    const {owner,aadhar} = req.body;
+    await ticketService.transferTicket(ticketId,owner,aadhar,(err, response) => {
+      if (err) {
+        return res.status(500).json(err);
+      }
+      return res.status(200).json(response);
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
 module.exports = {
   createTicketController,
-  getAllTicketsController,
   getTicketByIdController,
   getTicketsByJourneyController,
-  updateTicketController,
-  deleteTicketController
+  cancelTicketController,
+  moveTicketToSaleController,
+  updateTicketsByJourneyController,
+  transferTicketController,
+  cancelFromSaleController
 };

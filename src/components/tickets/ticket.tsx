@@ -1,6 +1,8 @@
 'use client'
-import React, { useState, useEffect, useRef, FC } from 'react';
-import "./ticket.css";
+import React, { FC, useState, useEffect, useRef } from 'react';
+import TransferModel from './TransferModel';
+import "./ticket.css"
+import { Toaster } from 'react-hot-toast';
 
 interface Ticket {
   trainName: string;
@@ -17,6 +19,12 @@ interface TicketCardProps {
 
 const TicketCard: FC<TicketCardProps> = ({ ticket }) => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [tranferMenuOpen, setTranferMenuOpen] = useState<boolean>(false);
+  const [tokenId, setTokenId] = useState<string>('');
+  const [walletAddress, setWalletAddress] = useState<string>('');
+  const [friendAadhaar, setFriendAadhaar] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Toggle menu visibility
@@ -40,6 +48,24 @@ const TicketCard: FC<TicketCardProps> = ({ ticket }) => {
     setMenuOpen(false);
   };
 
+  const handleTransfer = () => {
+    setTranferMenuOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setTranferMenuOpen(false);
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tokenId || !walletAddress || !friendAadhaar) {
+      setError('All fields are required.');
+      return;
+    }
+    alert(`Ticket transferred to ${walletAddress} with token ID ${tokenId}.`);
+    setTranferMenuOpen(false); // Close the pop-up after transfer
+  };
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: Event) => {
@@ -47,9 +73,9 @@ const TicketCard: FC<TicketCardProps> = ({ ticket }) => {
         setMenuOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -65,6 +91,9 @@ const TicketCard: FC<TicketCardProps> = ({ ticket }) => {
             <div className="menu-dropdown">
               <button className="menu-item" onClick={handleSendToSale}>
                 To Sale
+              </button>
+              <button className="menu-item" onClick={handleTransfer}>
+                Transfer
               </button>
               <button className="menu-item" onClick={handleCancel}>
                 Cancel
@@ -90,9 +119,19 @@ const TicketCard: FC<TicketCardProps> = ({ ticket }) => {
           <strong>Status:</strong> {ticket.availability}
         </p>
       </div>
+
+      {/* Conditional rendering for the transfer pop-up */}
+      {/* Modal */}
+      <TransferModel isOpen={tranferMenuOpen} onClose={handleCloseModal} title="Purchase Ticket">
+        <p>Are you sure you want to purchase a ticket for {ticket.trainName}?</p>
+        {/* Additional modal content can go here */}
+      </TransferModel>
+     
     </div>
   );
 };
+
+
 
 const Ticket: FC = () => {
   const ticketData: Ticket[] = [
@@ -128,7 +167,7 @@ const Ticket: FC = () => {
         <h2 className="ticket-heading">Your Tickets</h2>
         <div className='flex flex-wrap justify-evenly'>
           {ticketData.map((ticket, index) => (
-            <TicketCard key={index} ticket={ticket} />
+            <TicketCard key={index} ticket={ticket}  />
           ))}
         </div>
       </div>

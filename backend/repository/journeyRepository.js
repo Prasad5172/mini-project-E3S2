@@ -1,16 +1,33 @@
 const { JourneyModel } = require("../model/JourneyModel.js");
 const { TrainModel } = require("../model/TrainModel.js");
+const { Op, Sequelize, where } = require("sequelize");
+const trainRepository = require("./trainRepository.js");
+// Utility function to log and throw errors
+const handleError = (error, message) => {
+    console.error(`[JourneyRepository] ${message}:`, error);
+    throw new Error(message);
+};
 
 // 1️⃣ Create a new journey
 const createJourney = async (newJourney) => {
     try {
-        const createdJourney = await JourneyModel.create(newJourney);
-        return createdJourney;
+      // Check if the train exists
+      const trainExists = await trainRepository.retrieveOne({ train_id: newJourney.train_id });
+  
+      if (!trainExists) {
+        throw new Error("Train not found");
+      }
+      console.log(newJourney)
+      // Create the journey
+      const createdJourney = await JourneyModel.create(newJourney);
+      
+      return createdJourney;
     } catch (error) {
-        console.log(error.message);
-        throw new Error("Error occurred while creating the journey.");
+      console.error("Error creating journey:", error.message);
+      throw new Error("Failed to create journey.");
     }
-};
+  };
+  
 
 // 2️⃣ Retrieve a journey by journey ID
 const getJourneyById = async (journeyId) => {
@@ -20,79 +37,80 @@ const getJourneyById = async (journeyId) => {
             include: [
                 {
                     model: TrainModel,
-                    as: 'train', // Assuming a relationship is set
-                    attributes: ['train_id', 'train_name', 'from', 'to']
+                    as: 'train',
+                    attributes: ['train_id', 'train_name', 'source', 'destination']
                 }
             ]
         });
-        if (!journey) throw new Error("Journey not found");
+        console.log(journey)
+        if (!journey) throw new Error("Journey not found.");
         return journey;
     } catch (error) {
-        console.log(error.message);
-        throw new Error("Error occurred while retrieving the journey.");
+        handleError(error, `Failed to retrieve journey with ID ${journeyId}.`);
     }
 };
 
 // 3️⃣ Get all journeys
 const getAllJourneys = async () => {
     try {
-        const journeys = await JourneyModel.findAll({
+        return await JourneyModel.findAll({
             include: [
                 {
                     model: TrainModel,
-                    as: 'train', // Assuming a relationship is set
-                    attributes: ['train_id', 'train_name', 'from', 'to']
+                    as: 'train',
+                    attributes: ['train_id', 'train_name', 'source', 'destination']
                 }
             ]
         });
-        return journeys;
     } catch (error) {
-        console.log(error.message);
-        throw new Error("Error occurred while retrieving all journeys.");
+        handleError(error, "Failed to retrieve all journeys.");
     }
 };
 
 // 4️⃣ Get all journeys for a specific train
 const getJourneysByTrain = async (trainId) => {
     try {
-        const journeys = await JourneyModel.findAll({
+        return await JourneyModel.findAll({
             where: { train_id: trainId },
             include: [
                 {
                     model: TrainModel,
-                    as: 'train', // Assuming a relationship is set
+                    as: 'train',
                     attributes: ['train_id', 'train_name']
                 }
             ]
         });
-        return journeys;
     } catch (error) {
-        console.log(error.message);
-        throw new Error("Error occurred while retrieving journeys for this train.");
+        handleError(error, `Failed to retrieve journeys for train ID ${trainId}.`);
     }
 };
 
 // 5️⃣ Get all journeys within a specific date range
-const getJourneysByDateRange = async (startDate, endDate) => {
+const getJourneysByPath = async (source, destination) => {
+    console.log("getJourneysByPath");
     try {
-        const journeys = await JourneyModel.findAll({
+        const train = await TrainModel.findOne({
             where: {
-                timestartp: {
-                    [Sequelize.Op.between]: [startDate, endDate]
-                }
+                source: source,
+                destination: destination
+            }
+        })
+        console.log(train);
+        if (!train) throw new Error("Journey's not found.");
+        return await JourneyModel.findAll({
+            where: {
+                train_id: train.train_id
             },
             include: [
                 {
                     model: TrainModel,
-                    as: 'train', // Assuming a relationship is set
-                    attributes: ['train_id', 'train_name', 'from', 'to']
+                    as: 'train',
+                    attributes: ['train_id', 'train_name']
                 }
             ]
         });
-        return journeys;
     } catch (error) {
-        console.log(error.message);
-        throw new Error("Error occurred while retrieving journeys in the specified date range.");
+        handleError(error, `Failed to retrieve journeys from ${startDate} to ${endDate}.`);
     }
 };
 
@@ -100,14 +118,12 @@ const getJourneysByDateRange = async (startDate, endDate) => {
 const updateJourney = async (journeyId, updatedData) => {
     try {
         const journey = await JourneyModel.findByPk(journeyId);
-        if (!journey) throw new Error("Journey not found");
-        
-        // Update the journey with the new data
+        if (!journey) throw new Error("Journey not found.");
+
         await journey.update(updatedData);
         return journey;
     } catch (error) {
-        console.log(error.message);
-        throw new Error("Error occurred while updating the journey.");
+        handleError(error, `Failed to update journey with ID ${journeyId}.`);
     }
 };
 
@@ -116,6 +132,6 @@ module.exports = {
     getJourneyById,
     getAllJourneys,
     getJourneysByTrain,
-    getJourneysByDateRange,
+    getJourneysByPath,
     updateJourney
 };

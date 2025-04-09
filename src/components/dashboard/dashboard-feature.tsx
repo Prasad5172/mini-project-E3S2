@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createQR, encodeURL, findReference, FindReferenceError, TransactionRequestURLFields } from '@solana/pay';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { ConfirmedSignatureInfo, Keypair, PublicKey,Connection, SolanaJSONRPCError, TransactionSignature, clusterApiUrl } from '@solana/web3.js';
-import BigNumber from 'bignumber.js';
-import { simulateCheckout } from './simulateCheckout';
-import { validateTransfer } from './validateTransfer';
+import { ConfirmedSignatureInfo, Keypair, PublicKey, Connection, SolanaJSONRPCError, TransactionSignature, clusterApiUrl } from '@solana/web3.js';
 
 const MERCHANT_WALLET = new PublicKey("7UhsoPTm5oYq3eubg4RpYgr2xAVY7L9RxLbSNhufg9yh");
 
@@ -22,31 +19,18 @@ export default function DashboardFeature() {
   const startPaymentTransfer = async () => {
     setShowQR(true);
     console.log('\n2. 🛍 Simulate a customer checkout \n');
-    const { label, message, memo, amount, reference } = await simulateCheckout();
-    const splToken = new PublicKey('Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr');
+    const reference = new Keypair().publicKey;
 
-    // console.log('3. 💰 Create a payment request link for native sol \n');
-    // const url = encodeURL({ recipient: recipient, amount, reference, label, message, memo });
-    // console.log('3. 💰 Create a payment request link for spl-token sol \n');
-  //   const url = encodeURL({
-  //     recipient:MERCHANT_WALLET,
-  //     amount,
-  //     splToken,
-  //     reference,
-  //     label,
-  //     message,
-  //     memo,
-  // });
-  const params = new URLSearchParams()
-  params.append("reference", reference.toString());
-  const apiUrl = `${location.protocol}//${
-    location.host
-  }/api/hello?${params.toString()}`
-  const urlFields: TransactionRequestURLFields = {
-    link: new URL(apiUrl),
-  }
-  const url = encodeURL(urlFields)
-  // orking through api's
+
+    const params = new URLSearchParams()
+    params.append("reference", reference.toString());
+    const apiUrl = `${location.protocol}//${location.host
+      }/api/hello?${params.toString()}`
+    const urlFields: TransactionRequestURLFields = {
+      link: new URL(apiUrl),
+    }
+    const url = encodeURL(urlFields)
+    // orking through api's
     // const SOLANA_PAY_URL = `solana:https://mini-project-e3-s2.vercel.app//api/hello`
     console.log(url);
     const qr = createQR(url, 360, 'white', 'black');
@@ -85,13 +69,9 @@ export default function DashboardFeature() {
     });
     let { signature } = signatureInfo;
     setPaymentStatus("Confirmed");
-    let signatureA = "2SpbEteXjX6aFUGen1sTye9DdTjZ2dpAZaNAXgJDz6MvByfLSmu3DNAk1q3yNXSfAp8d33x16r6bSMp4AkS8P9Et"
-    let signatureB = "2TnjRGy3zAhpjPtUkD8JT65aGofmeEBTWnBi7cUXtCTXooHPneVEwZ8eLVk9df9dsqEP62QpxXGpfrjGvhR7Gno9"
-
-    // const con = new Connection(clusterApiUrl("devnet"), "confirmed");
     const transaction = await connection.getTransaction(signature, {
       commitment: 'confirmed',
-      maxSupportedTransactionVersion: 0, 
+      maxSupportedTransactionVersion: 0,
     });
     console.log(transaction);
     if (!transaction || !transaction.meta) {
@@ -117,8 +97,8 @@ export default function DashboardFeature() {
             <p>Status: <strong>{paymentStatus}</strong></p>
           </>
         }
-
       </div>
+        
     </div>
   );
 }

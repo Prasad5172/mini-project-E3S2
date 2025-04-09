@@ -22,12 +22,14 @@ const getTicketById = async (ticketId) => {
                 {
                     model: JourneyModel,
                     as: 'journey', // Assuming a relationship is set
-                    attributes: ['journey_id', 'train_id', 'timestartp']
-                },
-                {
-                    model: TrainModel,
-                    as: 'train', // Assuming a relationship is set
-                    attributes: ['train_id', 'train_name']
+                    attributes: ['journey_id', 'train_id'],
+                    include: [
+                        {
+                            model: TrainModel,
+                            as: 'train', // Ensure this alias matches your association
+                            attributes: ['train_name'] // Fetch train name
+                        }
+                    ]
                 }
             ]
         });
@@ -39,7 +41,6 @@ const getTicketById = async (ticketId) => {
     }
 };
 
-// 3️⃣ Get all tickets for a specific journey
 const getTicketsByJourney = async (journeyId) => {
     try {
         const tickets = await TicketModel.findAll({
@@ -47,8 +48,15 @@ const getTicketsByJourney = async (journeyId) => {
             include: [
                 {
                     model: JourneyModel,
-                    as: 'journey', // Assuming a relationship is set
-                    attributes: ['journey_id', 'train_id', 'timestartp']
+                    as: 'journey',
+                    attributes: ['journey_id', 'train_id'],
+                    include: [
+                        {
+                            model: TrainModel,
+                            as: 'train', // Ensure this alias matches your association
+                            attributes: ['train_name'] // Fetch train name
+                        }
+                    ]
                 }
             ]
         });
@@ -58,6 +66,8 @@ const getTicketsByJourney = async (journeyId) => {
         throw new Error("Error occurred while retrieving tickets for this journey.");
     }
 };
+
+
 
 // 4️⃣ Update ticket status
 const updateTicketStatus = async (ticketId, status) => {
@@ -76,10 +86,10 @@ const updateTicketStatus = async (ticketId, status) => {
 };
 
 // 5️⃣ Retrieve all tickets for a specific user
-const getTicketsByUser = async (username) => {
+const getTicketsByUser = async (publickey) => {
     try {
         const tickets = await TicketModel.findAll({
-            where: { username: username },
+            where: { owner: publickey },
             include: [
                 {
                     model: JourneyModel,
