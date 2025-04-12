@@ -4,18 +4,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { sha256 } from "js-sha256";
 import bs58 from 'bs58'
 import { send } from "process";
-type GetData = {
-  label: string;
-  icon: string;
-};
+// type GetData = {
+//   label: string;
+//   icon: string;
+// };
 // Devnet 'fake' USDC, you can get these tokens from https://spl-token-faucet.com/
-const USDC_ADDRESS = new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr");
+// const USDC_ADDRESS = new PublicKey("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr");
 const ENDPOINT = clusterApiUrl("devnet");
-const NFT_NAME = "Golden Ticket";
-const PRICE_USDC = 0.1;
-type InputData = {
-  account: string;
-};
+// const NFT_NAME = "Golden Ticket";
+// const PRICE_USDC = 0.1;
+// type InputData = {
+//   account: string;
+// };
 type Data = {
   label?: string;
   icon?: string;
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
     if (!referenceParam) {
       throw new Error('Missing reference in the URL query parameters.');
     }
-    const reference = new PublicKey(referenceParam);
+    const reference_in = new PublicKey(referenceParam);
     // const reference = new Keypair().publicKey;
     // console.log(reference.toBase58());
 
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       keys: [
         { pubkey: new PublicKey("4TeGWrrqMHW43r2QVYctp993pD6tAb4ZW4dxHJDNqmBR"), isSigner: false, isWritable: true },
         { pubkey: sender, isSigner: true, isWritable: true }, 
-        { pubkey: reference, isSigner: false, isWritable: false },
+        { pubkey: reference_in, isSigner: false, isWritable: false },
       ],
       data: data, 
     });
